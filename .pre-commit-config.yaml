@@ -13,7 +13,7 @@ repos:
     hooks:
       - id: jobapplier-security-guard
         name: JobApplier Security & Privacy Pre-Commit Guard
-        entry: bash .git/hooks/pre-commit
+        entry: bash scripts/hooks/pre-commit
         language: system
         pass_filenames: false
         always_run: true

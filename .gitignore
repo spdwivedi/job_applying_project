@@ -1,6 +1,7 @@
 # Private user data & generated artifacts (NEVER commit)
 vault/
 history/
+logs/
 .env
 .env.*
 !.env.example
