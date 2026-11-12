@@ -1,0 +1,27 @@
+# Private user data & generated artifacts (NEVER commit)
+vault/
+history/
+.env
+.env.*
+!.env.example
+*.sqlite
+*.db
+storageState.json
+
+# Python virtual environments & caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+
+# Logs & OS noise
+*.log
+.DS_Store
+Thumbs.db
