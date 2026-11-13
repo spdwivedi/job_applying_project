@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobApplier HITL Verification Dashboard</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --border-color: #334155;
+            --border-focus: #38bdf8;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-primary: #38bdf8;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-purple: #a855f7;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* Top Navigation & Status Bar */
+        .top-navbar {
+            background-color: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 12px 24px;
+        }
+
+        .navbar-content {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #38bdf8, #818cf8);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 16px;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .brand-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+            text-transform: uppercase;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .status-badge.awaiting {
+            background-color: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .status-badge.submitted,
+        .status-badge.approved {
+            background-color: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .status-badge.cancelled {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+        }
+
+        .pulse {
+            animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.85); }
+        }
+
+        /* Control Panel Buttons */
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 18px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease-in-out;
+            text-decoration: none;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: #0284c7;
+            color: #ffffff;
+            border-color: #0369a1;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: #0369a1;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: linear-gradient(135deg, #047857, #059669);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background-color: transparent;
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+        }
+
+        .btn-secondary {
+            background-color: #334155;
+            color: var(--text-primary);
+            border-color: #475569;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: #475569;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1440px;
+            margin: 24px auto;
+            padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Banner Messages */
+        .toast-banner {
+            display: none;
+            padding: 12px 18px;
+            border-radius: var(--radius-md);
+            font-size: 0.92rem;
+            font-weight: 500;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toast-success {
+            background-color: rgba(16, 185, 129, 0.2);
+            border: 1px solid var(--accent-success);
+            color: #6ee7b7;
+        }
+
+        .toast-error {
+            background-color: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--accent-danger);
+            color: #fca5a5;
+        }
+
+        /* Security Challenge / CAPTCHA Alert Banner */
+        .challenge-alert-banner {
+            display: none;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            background: rgba(245, 158, 11, 0.14);
+            border: 1px solid rgba(245, 158, 11, 0.6);
+            color: #fde68a;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.16);
+        }
+
+        .challenge-alert-banner.visible {
+            display: flex;
+        }
+
+        .challenge-alert-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .challenge-alert-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--accent-warning);
+            flex-shrink: 0;
+            animation: pulse-dot 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .challenge-alert-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: #fbbf24;
+        }
+
+        .challenge-alert-meta {
+            font-size: 0.82rem;
+            color: #fcd34d;
+            opacity: 0.9;
+        }
+
+        .challenge-alert-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        /* Job Metadata Panel */
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .meta-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .badge-category {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background-color: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            text-transform: uppercase;
+        }
+
+        .badge-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background-color: #334155;
+            color: #e2e8f0;
+            border: 1px solid #475569;
+            margin: 2px 4px 2px 0;
+        }
+
+        .badge-pill.preferred {
+            background-color: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .skills-container {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* 2-Column Main Workspace */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Form Fields Inspection View */
+        .form-fields-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .form-field-card {
+            background-color: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            transition: border-color 0.15s ease;
+        }
+
+        .form-field-card:focus-within {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 1px var(--border-focus);
+        }
+
+        .field-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .field-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .field-required {
+            color: var(--accent-danger);
+            font-weight: bold;
+            margin-left: 4px;
+        }
+
+        .field-tag {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            background: #1e293b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid #334155;
+            font-family: monospace;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            padding: 10px 12px;
+            font-size: 0.92rem;
+            font-family: inherit;
+            transition: border-color 0.15s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 1px var(--border-focus);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        .field-file-notice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background-color: rgba(56, 189, 248, 0.08);
+            border: 1px dashed rgba(56, 189, 248, 0.4);
+            border-radius: 6px;
+            font-size: 0.88rem;
+            color: var(--accent-primary);
+        }
+
+        /* Resume Preview Panel */
+        .pdf-viewer-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 720px;
+        }
+
+        .pdf-container {
+            flex: 1;
+            width: 100%;
+            min-height: 600px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background-color: #0b1120;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pdf-frame {
+            width: 100%;
+            height: 100%;
+            min-height: 620px;
+            border: none;
+        }
+
+        .empty-placeholder {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+            opacity: 0.6;
+        }
+
+        /* Token Info Banner */
+        .token-info {
+            font-family: monospace;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sticky Navigation / HITL Control Bar -->
+    <header class="top-navbar">
+        <div class="navbar-content">
+            <div class="brand-section">
+                <div class="brand-logo">&#x2714;</div>
+                <div>
+                    <div class="brand-title">JobApplier-Core &bull; Human-in-the-Loop Review</div>
+                    <div class="brand-subtitle">Pre-submission Verification Dashboard</div>
+                </div>
+            </div>
+
+            <!-- Dynamic Status Badge -->
+            <div id="statusBadge" class="status-badge {% if submission_status in ['APPROVED', 'SUBMITTED'] %}approved{% elif submission_status == 'CANCELLED' %}cancelled{% else %}awaiting{% endif %}">
+                <span class="status-dot {% if submission_status not in ['APPROVED', 'SUBMITTED', 'CANCELLED'] %}pulse{% endif %}"></span>
+                <span id="statusText">{{ submission_status or "AWAITING HUMAN APPROVAL" }}</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="controls-group">
+                <a href="/tracker" class="btn btn-secondary" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+                    &#x1F4CA; Pipeline Tracker
+                </a>
+                <button type="button" id="btnSaveFields" class="btn btn-secondary" onclick="saveFormFields()">
+                    &#x1F4BE; Save &amp; Re-fill Fields
+                </button>
+                <button type="button" id="btnApproveSubmit" class="btn btn-success" onclick="approveAndSubmit()" {% if submission_status in ['APPROVED', 'SUBMITTED'] %}disabled{% endif %}>
+                    &#x2713; Approve &amp; Submit
+                </button>
+                <button type="button" id="btnRejectCancel" class="btn btn-danger" onclick="cancelReview()" {% if submission_status in ['APPROVED', 'SUBMITTED', 'CANCELLED'] %}disabled{% endif %}>
+                    &#x2715; Reject / Cancel
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-container">
+        <!-- Security Challenge / CAPTCHA Alert Banner -->
+        <div id="captchaAlertBanner"
+             class="challenge-alert-banner{% if active_challenge %} visible{% endif %}"
+             role="alert"
+             aria-live="assertive">
+            <div class="challenge-alert-content">
+                <span class="challenge-alert-dot" aria-hidden="true"></span>
+                <div>
+                    <div id="captchaBannerMessage" class="challenge-alert-title">
+                        {{ (active_challenge.message if active_challenge and active_challenge.message else "CAPTCHA Detected: Complete in Browser") }}
+                    </div>
+                    <div id="captchaBannerMeta" class="challenge-alert-meta">
+                        {% if active_challenge %}
+                            Type: {{ active_challenge.challenge_type or "security_challenge" }}{% if active_challenge.url %} &bull; {{ active_challenge.url }}{% endif %}
+                        {% else %}
+                            Automation paused safely until human verification completes in the browser window.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="challenge-alert-actions">
+                <button type="button" id="btnResolveChallenge" class="btn btn-secondary" style="font-size:0.8rem; padding:5px 10px;" onclick="resolveChallengeBanner()">
+                    Mark Resolved
+                </button>
+                <button type="button" onclick="hideChallengeBanner()" aria-label="Dismiss challenge banner" style="background:none;border:none;color:inherit;cursor:pointer;font-size:1.1rem;">&times;</button>
+            </div>
+        </div>
+
+        <!-- Toast Notification Bar -->
+        <div id="toastBanner" class="toast-banner">
+            <span id="toastMessage">Notification message here</span>
+            <button type="button" onclick="closeToast()" style="background:none;border:none;color:inherit;cursor:pointer;font-size:1.1rem;">&times;</button>
+        </div>
+
+        <!-- Job Profile Metadata Card -->
+        <section class="card" aria-label="Job Metadata Panel">
+            <div class="card-header">
+                <h2 class="card-title">&#x1F4BC; Job Metadata &amp; Classification</h2>
+                {% if job_profile and job_profile.role_category %}
+                <span class="badge-category">{{ job_profile.role_category }}</span>
+                {% else %}
+                <span class="badge-category">full_time</span>
+                {% endif %}
+            </div>
+
+            <div class="meta-grid">
+                <div class="meta-item">
+                    <span class="meta-label">Company</span>
+                    <span class="meta-value">{{ job_profile.company_name if job_profile else "Not Loaded" }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Role Title</span>
+                    <span class="meta-value">{{ job_profile.job_title if job_profile else "Pending Extraction" }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Location</span>
+                    <span class="meta-value">{{ job_profile.location if job_profile else "Remote / Flexible" }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Work Type</span>
+                    <span class="meta-value">{{ job_profile.work_type if job_profile else "Unspecified" }}</span>
+                </div>
+            </div>
+
+            {% if job_profile %}
+            <div class="skills-container">
+                {% if job_profile.required_skills %}
+                <div style="margin-bottom: 8px;">
+                    <span class="meta-label" style="display:inline-block; margin-right:8px;">Required Skills:</span>
+                    {% for skill in job_profile.required_skills %}
+                    <span class="badge-pill">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if job_profile.preferred_skills %}
+                <div style="margin-bottom: 8px;">
+                    <span class="meta-label" style="display:inline-block; margin-right:8px;">Preferred Skills:</span>
+                    {% for skill in job_profile.preferred_skills %}
+                    <span class="badge-pill preferred">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if job_profile.tech_stack %}
+                <div>
+                    <span class="meta-label" style="display:inline-block; margin-right:8px;">Tech Stack:</span>
+                    {% for tech in job_profile.tech_stack %}
+                    <span class="badge-pill">{{ tech }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="token-info">
+                <span>Session Approval Token:</span>
+                <span id="approvalTokenDisplay">{{ approval_token or "None Generated" }}</span>
+            </div>
+        </section>
+
+        <!-- 2-Column Inspection Workspace -->
+        <div class="workspace-grid">
+            <!-- Left: Form Inspection & Modification -->
+            <section class="card" aria-label="Form Inspection View">
+                <div class="card-header">
+                    <h2 class="card-title">&#x1F4DD; Form Inspection &amp; Answer Tuning</h2>
+                    <span style="font-size:0.85rem; color:var(--text-muted);">
+                        {% if form_schema and form_schema.fields %}
+                            {{ form_schema.fields | length }} interactive fields detected
+                        {% else %}
+                            0 fields detected
+                        {% endif %}
+                    </span>
+                </div>
+
+                <form id="hitlForm" onsubmit="event.preventDefault(); saveFormFields();">
+                    <div class="form-fields-list">
+                        {% if form_schema and form_schema.fields %}
+                            {% for field in form_schema.fields %}
+                            <div class="form-field-card" data-field-id="{{ field.id }}">
+                                <div class="field-header">
+                                    <label for="field_{{ field.id }}" class="field-label">
+                                        {{ field.label or field.name or field.id }}
+                                        {% if field.required %}<span class="field-required">*</span>{% endif %}
+                                    </label>
+                                    <span class="field-tag">{{ field.type }}</span>
+                                </div>
+
+                                {% if field.type == 'textarea' %}
+                                    <textarea id="field_{{ field.id }}" name="{{ field.id }}" class="form-control" rows="4">{{ answers.get(field.id, field.value or '') }}</textarea>
+
+                                {% elif field.type == 'select' %}
+                                    <select id="field_{{ field.id }}" name="{{ field.id }}" class="form-control">
+                                        <option value="">-- Please Select --</option>
+                                        {% for opt in field.options %}
+                                        <option value="{{ opt }}" {% if answers.get(field.id, field.value or '') == opt %}selected{% endif %}>{{ opt }}</option>
+                                        {% endfor %}
+                                    </select>
+
+                                {% elif field.type == 'file' %}
+                                    <div class="field-file-notice">
+                                        <span>&#x1F4CE;</span>
+                                        <div>
+                                            <strong>Tailored Resume File Field</strong>
+                                            <p style="font-size:0.8rem; margin:0; opacity:0.85;">Automatically coupled with generated PDF shown on the right.</p>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="field_{{ field.id }}" name="{{ field.id }}" value="[TAILORED_RESUME_PDF_LINKED]">
+
+                                {% elif field.type in ['radio', 'checkbox'] and field.options %}
+                                    <div style="display:flex; flex-direction:column; gap:6px; margin-top:4px;">
+                                        {% for opt in field.options %}
+                                        <label style="display:flex; align-items:center; gap:8px; font-size:0.9rem; cursor:pointer;">
+                                            <input type="{{ field.type }}" name="{{ field.id }}" value="{{ opt }}" {% if answers.get(field.id, field.value or '') == opt %}checked{% endif %}>
+                                            <span>{{ opt }}</span>
+                                        </label>
+                                        {% endfor %}
+                                    </div>
+
+                                {% else %}
+                                    <input type="{{ field.type if field.type in ['text', 'email', 'tel', 'url', 'number'] else 'text' }}"
+                                           id="field_{{ field.id }}"
+                                           name="{{ field.id }}"
+                                           class="form-control"
+                                           value="{{ answers.get(field.id, field.value or '') }}">
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-placeholder">
+                                <div class="empty-icon">&#x1F50D;</div>
+                                <p>No form controls currently detected or queued for inspection.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </form>
+            </section>
+
+            <!-- Right: Tailored Resume PDF Preview -->
+            <section class="card pdf-viewer-card" aria-label="Resume PDF Preview">
+                <div class="card-header">
+                    <h2 class="card-title">&#x1F4C4; Tailored Resume PDF Preview</h2>
+                    {% if has_resume %}
+                    <a href="/api/resume-pdf?download=true" class="btn btn-secondary" style="font-size:0.82rem; padding:4px 12px;" download>
+                        &#x2913; Download PDF
+                    </a>
+                    {% endif %}
+                </div>
+
+                <div class="pdf-container">
+                    {% if has_resume %}
+                    <iframe src="/api/resume-pdf#toolbar=1" class="pdf-frame" title="Resume PDF Preview">
+                        <embed src="/api/resume-pdf" type="application/pdf" class="pdf-frame" />
+                    </iframe>
+                    {% else %}
+                    <div class="empty-placeholder">
+                        <div class="empty-icon">&#x1F4D1;</div>
+                        <p style="font-weight:600; margin-bottom:4px;">Resume PDF Preview</p>
+                        <p style="font-size:0.85rem;">No tailored resume PDF has been compiled for this review session yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Interactive Client Script -->
+    <script>
+        const approvalToken = "{{ approval_token }}";
+
+        function showToast(message, isError = false) {
+            const banner = document.getElementById("toastBanner");
+            const text = document.getElementById("toastMessage");
+            text.textContent = message;
+            banner.className = "toast-banner " + (isError ? "toast-error" : "toast-success");
+            banner.style.display = "flex";
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+
+        function closeToast() {
+            document.getElementById("toastBanner").style.display = "none";
+        }
+
+        function collectFormAnswers() {
+            const form = document.getElementById("hitlForm");
+            const answers = {};
+            if (!form) return answers;
+
+            const inputs = form.querySelectorAll("input, textarea, select");
+            inputs.forEach(input => {
+                if (!input.name) return;
+                if ((input.type === 'radio' || input.type === 'checkbox')) {
+                    if (input.checked) {
+                        answers[input.name] = input.value;
+                    }
+                } else {
+                    answers[input.name] = input.value;
+                }
+            });
+            return answers;
+        }
+
+        async function saveFormFields() {
+            const btn = document.getElementById("btnSaveFields");
+            btn.disabled = true;
+            btn.textContent = "Saving...";
+
+            try {
+                const answers = collectFormAnswers();
+                const response = await fetch("/api/save-fields", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ answers: answers })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.status === "saved") {
+                    showToast("Form fields and proposed answers updated successfully.");
+                } else {
+                    showToast("Failed to save fields: " + (data.message || response.statusText), true);
+                }
+            } catch (err) {
+                showToast("Network error while saving fields: " + err.message, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = "&#x1F4BE; Save &amp; Re-fill Fields";
+            }
+        }
+
+        async function approveAndSubmit() {
+            if (!confirm("Are you sure you want to approve this application and submit to the job portal?")) {
+                return;
+            }
+
+            const btn = document.getElementById("btnApproveSubmit");
+            btn.disabled = true;
+            btn.textContent = "Approving...";
+
+            try {
+                // First save any recent edits
+                const currentAnswers = collectFormAnswers();
+                await fetch("/api/save-fields", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ answers: currentAnswers })
+                });
+
+                const response = await fetch("/api/approve-submit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ token: approvalToken })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.status === "approved") {
+                    showToast("Application APPROVED and submitted! Authorization token issued.");
+                    const badge = document.getElementById("statusBadge");
+                    badge.className = "status-badge approved";
+                    document.getElementById("statusText").textContent = "SUBMITTED";
+                    document.getElementById("btnRejectCancel").disabled = true;
+                    btn.disabled = true;
+                } else {
+                    showToast("Approval rejected: " + (data.message || data.detail || response.statusText), true);
+                    btn.disabled = false;
+                    btn.innerHTML = "&#x2713; Approve &amp; Submit";
+                }
+            } catch (err) {
+                showToast("Error during submission approval: " + err.message, true);
+                btn.disabled = false;
+                btn.innerHTML = "&#x2713; Approve &amp; Submit";
+            }
+        }
+
+        async function cancelReview() {
+            if (!confirm("Cancel this application review session? This will abort submission.")) {
+                return;
+            }
+
+            const btn = document.getElementById("btnRejectCancel");
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("/api/cancel", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
+                });
+
+                const data = await response.json();
+                if (response.ok && data.status === "cancelled") {
+                    showToast("Application review session cancelled.", true);
+                    const badge = document.getElementById("statusBadge");
+                    badge.className = "status-badge cancelled";
+                    document.getElementById("statusText").textContent = "CANCELLED";
+                    document.getElementById("btnApproveSubmit").disabled = true;
+                    document.getElementById("btnSaveFields").disabled = true;
+                } else {
+                    showToast("Cancellation failed: " + (data.message || response.statusText), true);
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                showToast("Error cancelling session: " + err.message, true);
+                btn.disabled = false;
+            }
+        }
+
+        let challengeSocket = null;
+        let challengeReconnectDelayMs = 2000;
+
+        function showChallengeBanner(payload) {
+            const banner = document.getElementById("captchaAlertBanner");
+            const msgEl = document.getElementById("captchaBannerMessage");
+            const metaEl = document.getElementById("captchaBannerMeta");
+            if (!banner || !msgEl) return;
+
+            const messageText = (payload && payload.message) ? payload.message : "CAPTCHA Detected: Complete in Browser";
+            msgEl.textContent = messageText;
+
+            if (metaEl) {
+                const cType = payload && payload.challenge_type ? payload.challenge_type : "security_challenge";
+                const cUrl = payload && payload.url ? " \u2022 " + payload.url : "";
+                metaEl.textContent = "Type: " + cType + cUrl + " \u2014 Automation suspended without closing browser.";
+            }
+
+            banner.classList.add("visible");
+            banner.style.display = "flex";
+        }
+
+        function hideChallengeBanner() {
+            const banner = document.getElementById("captchaAlertBanner");
+            if (!banner) return;
+            banner.classList.remove("visible");
+            banner.style.display = "none";
+        }
+
+        async function resolveChallengeBanner() {
+            try {
+                const response = await fetch("/api/challenges/resolve", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: "Security challenge marked resolved from dashboard." })
+                });
+                if (response.ok) {
+                    hideChallengeBanner();
+                    showToast("Security challenge marked resolved.");
+                }
+            } catch (err) {
+                showToast("Unable to mark challenge resolved: " + err.message, true);
+            }
+        }
+
+        function handleChallengeEvent(payload) {
+            if (!payload || typeof payload !== "object") return;
+            if (payload.type === "pong") return;
+
+            if (payload.resolved === true || payload.event === "EVENT_SECURITY_CHALLENGE_RESOLVED") {
+                hideChallengeBanner();
+                showToast(payload.message || "Security challenge resolved; automation resumed.");
+                return;
+            }
+
+            if (payload.event === "EVENT_SECURITY_CHALLENGE_DETECTED" || payload.message || payload.challenge_type) {
+                showChallengeBanner(payload);
+            }
+        }
+
+        function connectChallengeWebSocket() {
+            if (!window.WebSocket) return;
+            const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+            const wsUrl = proto + "//" + window.location.host + "/ws/challenges";
+
+            try {
+                challengeSocket = new WebSocket(wsUrl);
+            } catch (err) {
+                return;
+            }
+
+            challengeSocket.onopen = function () {
+                challengeReconnectDelayMs = 2000;
+            };
+
+            challengeSocket.onmessage = function (event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    handleChallengeEvent(data);
+                } catch (err) {
+                    // Ignore non-JSON frames
+                }
+            };
+
+            challengeSocket.onclose = function () {
+                setTimeout(connectChallengeWebSocket, challengeReconnectDelayMs);
+                challengeReconnectDelayMs = Math.min(challengeReconnectDelayMs * 2, 10000);
+            };
+        }
+
+        async function syncInitialChallengeStatus() {
+            try {
+                const response = await fetch("/api/challenges/status");
+                if (!response.ok) return;
+                const status = await response.json();
+                if (status && status.active && status.challenge) {
+                    showChallengeBanner(status.challenge);
+                }
+            } catch (err) {
+                // Ignore if unavailable during startup
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            connectChallengeWebSocket();
+            syncInitialChallengeStatus();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+# Target companies for zero-token ATS public API feed scanning.
+# Supported portals: greenhouse, lever
+# Each company entry supports:
+#   name: Human-readable company name
+#   portal: "greenhouse" or "lever"
+#   board_token: Greenhouse board token or Lever company slug
+#   enabled: true or false
+#   role_filters:
+#     include_keywords: list of title keywords (any match keeps the role)
+#     exclude_keywords: list of title keywords (any match drops the role)
+#     max_age_days: maximum posting age in days
+
+defaults:
+  max_age_days: 14
+
+companies:
+  - name: Stripe
+    portal: greenhouse
+    board_token: stripe
+    enabled: true
+    role_filters:
+      include_keywords:
+        - software engineer
+        - backend
+        - platform
+        - infrastructure
+      exclude_keywords:
+        - staff
+        - principal
+        - director
+        - manager
+      max_age_days: 14
+
+  - name: Anthropic
+    portal: greenhouse
+    board_token: anthropic
+    enabled: true
+    role_filters:
+      include_keywords:
+        - software engineer
+        - research engineer
+        - systems
+        - infrastructure
+      exclude_keywords:
+        - staff
+        - principal
+        - director
+        - manager
+      max_age_days: 14
+
+  - name: Databricks
+    portal: greenhouse
+    board_token: databricks
+    enabled: true
+    role_filters:
+      include_keywords:
+        - software engineer
+        - backend
+        - distributed systems
+        - data engineer
+      exclude_keywords:
+        - staff
+        - principal
+        - director
+        - manager
+      max_age_days: 14
+
+  - name: Figma
+    portal: greenhouse
+    board_token: figma
+    enabled: false
+    role_filters:
+      include_keywords:
+        - software engineer
+        - full stack
+      exclude_keywords:
+        - staff
+        - manager
+      max_age_days: 14
+
+  - name: Plaid
+    portal: lever
+    board_token: plaid
+    enabled: true
+    role_filters:
+      include_keywords:
+        - software engineer
+        - backend
+        - platform
+      exclude_keywords:
+        - staff
+        - principal
+        - director
+        - manager
+      max_age_days: 14
+
+  - name: Palantir
+    portal: lever
+    board_token: palantir
+    enabled: false
+    role_filters:
+      include_keywords:
+        - software engineer
+        - forward deployed
+      exclude_keywords:
+        - director
+        - manager
+      max_age_days: 21

@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JobApplier - Application Pipeline Tracker</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-card-hover: #334155;
+            --border-color: #334155;
+            --border-focus: #38bdf8;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-primary: #38bdf8;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-purple: #a855f7;
+            --accent-orange: #fb923c;
+            --accent-indigo: #818cf8;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        /* Top Navigation Bar */
+        .top-navbar {
+            background-color: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 14px 24px;
+        }
+
+        .navbar-content {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #38bdf8, #a855f7);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 16px;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+        }
+
+        .brand-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .brand-subtitle {
+            font-size: 0.75rem;
+            color: var(--accent-primary);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            background: transparent;
+            color: var(--text-primary);
+        }
+
+        .btn-primary {
+            background-color: var(--accent-primary);
+            color: #0f172a;
+        }
+
+        .btn-primary:hover {
+            background-color: #7dd3fc;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-card-hover);
+            border-color: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .btn-sm {
+            padding: 4px 10px;
+            font-size: 0.8rem;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1440px;
+            margin: 24px auto;
+            padding: 0 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Metric Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-focus);
+        }
+
+        .metric-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+        }
+
+        .metric-card.card-total::after { background: var(--accent-primary); }
+        .metric-card.card-drafted::after { background: var(--text-muted); }
+        .metric-card.card-submitted::after { background: var(--accent-warning); }
+        .metric-card.card-interviewing::after { background: var(--accent-purple); }
+        .metric-card.card-offer::after { background: var(--accent-success); }
+
+        .metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .metric-title {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+
+        .metric-subtext {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Funnel Flow Bar */
+        .funnel-banner {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .funnel-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+        }
+
+        .funnel-arrow {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .funnel-stat-tag {
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        /* Layout Grid: Content + Sidebar */
+        .dashboard-body {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-body {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Applications View Card */
+        .content-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .content-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .card-heading {
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .input-search, .select-filter {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-search:focus, .select-filter:focus {
+            border-color: var(--border-focus);
+        }
+
+        .view-toggle {
+            display: inline-flex;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 2px;
+        }
+
+        .view-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn.active {
+            background-color: var(--accent-primary);
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        /* Applications Table */
+        .table-wrapper {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table.app-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        table.app-table th {
+            background-color: rgba(15, 23, 42, 0.6);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.725rem;
+            letter-spacing: 0.05em;
+        }
+
+        table.app-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        table.app-table tr:hover td {
+            background-color: rgba(51, 65, 85, 0.2);
+        }
+
+        .company-cell {
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .portal-tag {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: rgba(56, 189, 248, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .role-category-tag {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background-color: rgba(168, 85, 247, 0.1);
+            color: var(--accent-purple);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+
+        /* Status Badges & Quick Select */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .status-Drafted { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+        .status-Drafted .status-dot { background: #94a3b8; }
+
+        .status-Verified { background: rgba(129, 140, 248, 0.15); color: #818cf8; }
+        .status-Verified .status-dot { background: #818cf8; }
+
+        .status-Submitted { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+        .status-Submitted .status-dot { background: #f59e0b; }
+
+        .status-Follow-up-Due { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+        .status-Follow-up-Due .status-dot { background: #fb923c; }
+
+        .status-Interviewing { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+        .status-Interviewing .status-dot { background: #a855f7; box-shadow: 0 0 6px #a855f7; }
+
+        .status-Offer { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .status-Offer .status-dot { background: #10b981; box-shadow: 0 0 6px #10b981; }
+
+        .status-Rejected { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .status-Rejected .status-dot { background: #ef4444; }
+
+        .status-Archived { background: rgba(100, 116, 139, 0.15); color: #64748b; }
+        .status-Archived .status-dot { background: #64748b; }
+
+        .quick-status-select {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 0.775rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .quick-status-select:focus {
+            border-color: var(--border-focus);
+        }
+
+        /* Upcoming Interviews Widget */
+        .interview-widget {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .widget-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .widget-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+
+        .interview-list {
+            padding: 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 480px;
+            overflow-y: auto;
+        }
+
+        .interview-item {
+            background-color: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-left: 3px solid var(--accent-purple);
+        }
+
+        .interview-date-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+        }
+
+        .interview-date {
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .interview-round {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .interview-company {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .interview-title {
+            font-size: 0.775rem;
+            color: var(--text-secondary);
+        }
+
+        .interview-notes {
+            font-size: 0.725rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .empty-state {
+            padding: 32px 20px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Kanban Board View */
+        .kanban-board {
+            display: none;
+            overflow-x: auto;
+            padding: 16px;
+            gap: 16px;
+        }
+
+        .kanban-column {
+            min-width: 250px;
+            max-width: 280px;
+            flex-shrink: 0;
+            background-color: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .kanban-column-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .kanban-column-count {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            padding: 1px 6px;
+            font-size: 0.7rem;
+        }
+
+        .kanban-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .kanban-card-company {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .kanban-card-title {
+            font-size: 0.775rem;
+            color: var(--text-secondary);
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            padding: 16px;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-window {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 540px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .modal-overlay.open .modal-window {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--border-focus);
+        }
+
+        textarea.form-control {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            font-size: 0.875rem;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 2000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--accent-success);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--accent-danger);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navbar -->
+    <header class="top-navbar">
+        <div class="navbar-content">
+            <div class="brand-section">
+                <div class="brand-logo">JA</div>
+                <div>
+                    <div class="brand-title">JobApplier Pipeline Tracker</div>
+                    <div class="brand-subtitle">Central Funnel & Lifecycle Tracker</div>
+                </div>
+            </div>
+            <div class="navbar-actions">
+                <button type="button" class="btn btn-secondary" onclick="openInterviewModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    Schedule Interview
+                </button>
+                <button type="button" class="btn btn-primary" onclick="openAddModal()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add Application
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <!-- Top Funnel Summary Cards -->
+        <section class="metrics-grid">
+            <div class="metric-card card-total">
+                <div class="metric-header">
+                    <span class="metric-title">Total Applications</span>
+                    <span class="metric-badge">All-Time</span>
+                </div>
+                <div class="metric-value" id="val-total">{{ metrics.total if metrics else 0 }}</div>
+                <div class="metric-subtext">Overall Pipeline Volume</div>
+            </div>
+
+            <div class="metric-card card-drafted">
+                <div class="metric-header">
+                    <span class="metric-title">Drafted & Verified</span>
+                    <span class="metric-badge">In Prep</span>
+                </div>
+                <div class="metric-value" id="val-drafted">
+                    {{ (metrics.by_status.get('Drafted', 0) + metrics.by_status.get('Verified', 0)) if metrics else 0 }}
+                </div>
+                <div class="metric-subtext">Awaiting submission</div>
+            </div>
+
+            <div class="metric-card card-submitted">
+                <div class="metric-header">
+                    <span class="metric-title">Submitted</span>
+                    <span class="metric-badge" id="badge-sub-rate">{{ metrics.conversion_rates.submission_rate_pct if metrics else 0.0 }}% Sub Rate</span>
+                </div>
+                <div class="metric-value" id="val-submitted">{{ metrics.by_status.get('Submitted', 0) if metrics else 0 }}</div>
+                <div class="metric-subtext">Sent to employer portals</div>
+            </div>
+
+            <div class="metric-card card-interviewing">
+                <div class="metric-header">
+                    <span class="metric-title">Interviewing</span>
+                    <span class="metric-badge" id="badge-int-rate">{{ metrics.conversion_rates.interview_rate_pct if metrics else 0.0 }}% Int Rate</span>
+                </div>
+                <div class="metric-value" id="val-interviewing">{{ metrics.by_status.get('Interviewing', 0) if metrics else 0 }}</div>
+                <div class="metric-subtext">Active screening rounds</div>
+            </div>
+
+            <div class="metric-card card-offer">
+                <div class="metric-header">
+                    <span class="metric-title">Offers</span>
+                    <span class="metric-badge" id="badge-off-rate">{{ metrics.conversion_rates.offer_rate_pct if metrics else 0.0 }}% Conv</span>
+                </div>
+                <div class="metric-value" id="val-offer">{{ metrics.by_status.get('Offer', 0) if metrics else 0 }}</div>
+                <div class="metric-subtext">Final offers received</div>
+            </div>
+        </section>
+
+        <!-- Funnel Progression Bar -->
+        <section class="funnel-banner">
+            <div class="funnel-step">
+                <span>Total:</span>
+                <span class="funnel-stat-tag">{{ metrics.total if metrics else 0 }}</span>
+            </div>
+            <span class="funnel-arrow">&rarr;</span>
+            <div class="funnel-step">
+                <span>Submitted:</span>
+                <span class="funnel-stat-tag">{{ metrics.by_status.get('Submitted', 0) if metrics else 0 }}</span>
+            </div>
+            <span class="funnel-arrow">&rarr;</span>
+            <div class="funnel-step">
+                <span>Interviewing:</span>
+                <span class="funnel-stat-tag">{{ metrics.by_status.get('Interviewing', 0) if metrics else 0 }}</span>
+            </div>
+            <span class="funnel-arrow">&rarr;</span>
+            <div class="funnel-step">
+                <span>Offer:</span>
+                <span class="funnel-stat-tag" style="color: var(--accent-success);">{{ metrics.by_status.get('Offer', 0) if metrics else 0 }}</span>
+            </div>
+            <div style="margin-left: auto; font-size: 0.8rem; color: var(--text-secondary);">
+                Overall Funnel Conversion: <strong style="color: var(--accent-primary);">{{ metrics.conversion_rates.overall_conversion_rate_pct if metrics else 0.0 }}%</strong>
+            </div>
+        </section>
+
+        <!-- Dashboard Body: Left Table / Kanban, Right Upcoming Interviews -->
+        <div class="dashboard-body">
+
+            <!-- Main Content Area -->
+            <div class="content-card">
+                <div class="content-card-header">
+                    <div class="card-heading">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        Tracked Applications
+                    </div>
+
+                    <div class="toolbar">
+                        <input type="text" id="filter-search" class="input-search" placeholder="Search company or title..." oninput="filterApplications()">
+                        <select id="filter-category" class="select-filter" onchange="filterApplications()">
+                            <option value="">All Roles</option>
+                            <option value="full_time">Full-Time</option>
+                            <option value="internships">Internships</option>
+                        </select>
+                        <select id="filter-status" class="select-filter" onchange="filterApplications()">
+                            <option value="">All Statuses</option>
+                            {% for st in statuses %}
+                            <option value="{{ st }}">{{ st }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="view-toggle">
+                            <button type="button" class="view-btn active" id="btn-view-table" onclick="setViewMode('table')">Table</button>
+                            <button type="button" class="view-btn" id="btn-view-kanban" onclick="setViewMode('kanban')">Kanban</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table View -->
+                <div class="table-wrapper" id="view-table-wrapper">
+                    <table class="app-table" id="applications-table">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Role Title</th>
+                                <th>Category</th>
+                                <th>Date Applied</th>
+                                <th>Portal</th>
+                                <th>Status</th>
+                                <th>Interviews</th>
+                                <th>Quick Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="applications-tbody">
+                            {% if records and records|length > 0 %}
+                                {% for r in records %}
+                                <tr data-id="{{ r.id }}" data-company="{{ r.company|lower }}" data-title="{{ r.title|lower }}" data-status="{{ r.status }}" data-category="{{ r.role_category }}">
+                                    <td>
+                                        <div class="company-cell">
+                                            <strong>{{ r.company }}</strong>
+                                        </div>
+                                    </td>
+                                    <td>{{ r.title }}</td>
+                                    <td>
+                                        <span class="role-category-tag">{{ 'Internship' if r.role_category == 'internships' else 'Full-time' }}</span>
+                                    </td>
+                                    <td>{{ r.date_applied }}</td>
+                                    <td>
+                                        {% if r.portal %}
+                                        <span class="portal-tag">{{ r.portal }}</span>
+                                        {% else %}
+                                        <span style="color: var(--text-muted);">&mdash;</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set clean_status = r.status.replace(' ', '-') %}
+                                        <div class="status-pill status-{{ clean_status }}">
+                                            <span class="status-dot"></span>
+                                            <span>{{ r.status }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if r.interviews and r.interviews|length > 0 %}
+                                        <span style="color: var(--accent-purple); font-weight: 600;">
+                                            {{ r.interviews|length }} round{{ 's' if r.interviews|length > 1 else '' }}
+                                        </span>
+                                        {% else %}
+                                        <span style="color: var(--text-muted);">&mdash;</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <select class="quick-status-select" onchange="quickUpdateStatus('{{ r.id }}', this.value)">
+                                            {% for st in statuses %}
+                                            <option value="{{ st }}" {% if st == r.status %}selected{% endif %}>{{ st }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="empty-table-row">
+                                    <td colspan="8" class="empty-state">
+                                        No applications tracked yet. Click "Add Application" above to register your first job!
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Kanban Board View -->
+                <div class="kanban-board" id="view-kanban-board">
+                    {% for st in statuses %}
+                    <div class="kanban-column" data-kanban-status="{{ st }}">
+                        <div class="kanban-column-title">
+                            <span>{{ st }}</span>
+                            <span class="kanban-column-count" id="count-kanban-{{ loop.index }}">
+                                {{ metrics.by_status.get(st, 0) if metrics else 0 }}
+                            </span>
+                        </div>
+                        <div class="kanban-cards-container" id="cards-{{ loop.index }}">
+                            {% if records %}
+                                {% for r in records %}
+                                    {% if r.status == st %}
+                                    <div class="kanban-card" data-id="{{ r.id }}">
+                                        <div class="kanban-card-company">{{ r.company }}</div>
+                                        <div class="kanban-card-title">{{ r.title }}</div>
+                                        <div style="font-size: 0.725rem; color: var(--text-muted); display: flex; justify-content: space-between;">
+                                            <span>{{ r.date_applied }}</span>
+                                            <span>{{ r.portal }}</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+            <!-- Right Column: Upcoming Interviews Widget -->
+            <div class="interview-widget">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        Upcoming Interviews
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="openInterviewModal()">+ Add</button>
+                </div>
+                <div class="interview-list" id="interview-list-container">
+                    {% if metrics and metrics.upcoming_interviews and metrics.upcoming_interviews|length > 0 %}
+                        {% for ev in metrics.upcoming_interviews %}
+                        <div class="interview-item">
+                            <div class="interview-date-row">
+                                <span class="interview-date">{{ ev.date }}</span>
+                                <span class="interview-round">{{ ev.round }}</span>
+                            </div>
+                            <div class="interview-company">{{ ev.company }}</div>
+                            <div class="interview-title">{{ ev.title }}</div>
+                            {% if ev.notes %}
+                            <div class="interview-notes">{{ ev.notes }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            No upcoming interview events scheduled.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal: Add Application -->
+    <div class="modal-overlay" id="modal-add-app">
+        <div class="modal-window">
+            <div class="modal-header">
+                <div class="modal-title">Track New Application</div>
+                <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+            </div>
+            <form id="form-add-app" onsubmit="submitNewApplication(event)">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="add-company">Company *</label>
+                            <input type="text" id="add-company" class="form-control" placeholder="Acme Corp" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-title">Job Title *</label>
+                            <input type="text" id="add-title" class="form-control" placeholder="Software Engineer" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="add-role-category">Role Category</label>
+                            <select id="add-role-category" class="form-control">
+                                <option value="full_time">Full-Time</option>
+                                <option value="internships">Internship</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="add-portal">Portal Type</label>
+                            <input type="text" id="add-portal" class="form-control" placeholder="Greenhouse, Lever, etc.">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="add-date">Date Applied</label>
+                            <input type="date" id="add-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="add-status">Status</label>
+                            <select id="add-status" class="form-control">
+                                {% for st in statuses %}
+                                <option value="{{ st }}" {% if st == 'Submitted' %}selected{% endif %}>{{ st }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="add-url">Portal Job URL</label>
+                        <input type="url" id="add-url" class="form-control" placeholder="https://boards.greenhouse.io/...">
+                    </div>
+                    <div class="form-group">
+                        <label for="add-notes">Notes</label>
+                        <textarea id="add-notes" class="form-control" placeholder="Initial submission notes..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: Add Interview -->
+    <div class="modal-overlay" id="modal-add-interview">
+        <div class="modal-window">
+            <div class="modal-header">
+                <div class="modal-title">Schedule Interview Round</div>
+                <button type="button" class="modal-close" onclick="closeModals()">&times;</button>
+            </div>
+            <form id="form-add-interview" onsubmit="submitNewInterview(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="int-app-id">Select Application *</label>
+                        <select id="int-app-id" class="form-control" required>
+                            <option value="">-- Choose Job --</option>
+                            {% if records %}
+                                {% for r in records %}
+                                <option value="{{ r.id }}">{{ r.company }} &ndash; {{ r.title }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="int-date">Interview Date *</label>
+                            <input type="date" id="int-date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="int-round">Round / Type *</label>
+                            <input type="text" id="int-round" class="form-control" placeholder="Technical Screening" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="int-notes">Notes / Meeting Link</label>
+                        <textarea id="int-notes" class="form-control" placeholder="Panel members, topics, or focus areas..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Interview</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast toast-success" id="toast-notification">
+        <span id="toast-message">Action completed successfully</span>
+    </div>
+
+    <script>
+        // Set today as default date for modals
+        document.addEventListener("DOMContentLoaded", () => {
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById("add-date");
+            const intDateInput = document.getElementById("int-date");
+            if (dateInput) dateInput.value = today;
+            if (intDateInput) intDateInput.value = today;
+        });
+
+        function showToast(msg, isError = false) {
+            const toast = document.getElementById("toast-notification");
+            const msgEl = document.getElementById("toast-message");
+            if (!toast || !msgEl) return;
+            msgEl.textContent = msg;
+            toast.className = isError ? "toast toast-error show" : "toast toast-success show";
+            setTimeout(() => {
+                toast.classList.remove("show");
+            }, 3000);
+        }
+
+        function openAddModal() {
+            document.getElementById("modal-add-app").classList.add("open");
+        }
+
+        function openInterviewModal(recordId = null) {
+            const modal = document.getElementById("modal-add-interview");
+            if (recordId) {
+                const select = document.getElementById("int-app-id");
+                if (select) select.value = recordId;
+            }
+            modal.classList.add("open");
+        }
+
+        function closeModals() {
+            document.querySelectorAll(".modal-overlay").forEach(m => m.classList.remove("open"));
+        }
+
+        // View toggle: table vs kanban
+        function setViewMode(mode) {
+            const tblWrapper = document.getElementById("view-table-wrapper");
+            const kanbanWrapper = document.getElementById("view-kanban-board");
+            const btnTbl = document.getElementById("btn-view-table");
+            const btnKbn = document.getElementById("btn-view-kanban");
+
+            if (mode === "kanban") {
+                tblWrapper.style.display = "none";
+                kanbanWrapper.style.display = "flex";
+                btnTbl.classList.remove("active");
+                btnKbn.classList.add("active");
+            } else {
+                tblWrapper.style.display = "block";
+                kanbanWrapper.style.display = "none";
+                btnTbl.classList.add("active");
+                btnKbn.classList.remove("active");
+            }
+        }
+
+        // Real-time table filtering
+        function filterApplications() {
+            const query = (document.getElementById("filter-search").value || "").toLowerCase().trim();
+            const cat = (document.getElementById("filter-category").value || "").toLowerCase().trim();
+            const status = (document.getElementById("filter-status").value || "").trim();
+
+            const rows = document.querySelectorAll("#applications-tbody tr[data-id]");
+            rows.forEach(row => {
+                const company = row.getAttribute("data-company") || "";
+                const title = row.getAttribute("data-title") || "";
+                const rStatus = row.getAttribute("data-status") || "";
+                const rCat = (row.getAttribute("data-category") || "").toLowerCase();
+
+                const matchQuery = !query || company.includes(query) || title.includes(query);
+                const matchCat = !cat || rCat === cat;
+                const matchStatus = !status || rStatus === status;
+
+                row.style.display = (matchQuery && matchCat && matchStatus) ? "" : "none";
+            });
+        }
+
+        // Quick status update from dropdown
+        async function quickUpdateStatus(recordId, newStatus) {
+            try {
+                const resp = await fetch("/api/tracker/update-status", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ record_id: recordId, status: newStatus })
+                });
+
+                if (!resp.ok) {
+                    throw new Error("Failed to update status");
+                }
+
+                showToast(`Status updated to ${newStatus}`);
+                setTimeout(() => window.location.reload(), 600);
+            } catch (err) {
+                showToast("Error updating status: " + err.message, true);
+            }
+        }
+
+        // Submit new application
+        async function submitNewApplication(ev) {
+            ev.preventDefault();
+            const company = document.getElementById("add-company").value.trim();
+            const title = document.getElementById("add-title").value.trim();
+            const role_category = document.getElementById("add-role-category").value;
+            const portal = document.getElementById("add-portal").value.trim();
+            const date_applied = document.getElementById("add-date").value;
+            const status = document.getElementById("add-status").value;
+            const portal_url = document.getElementById("add-url").value.trim();
+            const notes = document.getElementById("add-notes").value.trim();
+
+            try {
+                const resp = await fetch("/api/tracker/add", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        company,
+                        title,
+                        role_category,
+                        portal,
+                        date_applied,
+                        status,
+                        portal_url,
+                        notes
+                    })
+                });
+
+                if (!resp.ok) {
+                    throw new Error("Server rejected application");
+                }
+
+                showToast("Application added successfully!");
+                closeModals();
+                setTimeout(() => window.location.reload(), 600);
+            } catch (err) {
+                showToast("Error adding application: " + err.message, true);
+            }
+        }
+
+        // Submit new interview
+        async function submitNewInterview(ev) {
+            ev.preventDefault();
+            const record_id = document.getElementById("int-app-id").value;
+            const date = document.getElementById("int-date").value;
+            const round_name = document.getElementById("int-round").value.trim();
+            const notes = document.getElementById("int-notes").value.trim();
+
+            if (!record_id) {
+                showToast("Please choose an application first", true);
+                return;
+            }
+
+            try {
+                const resp = await fetch("/api/tracker/add-interview", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        record_id,
+                        date,
+                        round_name,
+                        notes
+                    })
+                });
+
+                if (!resp.ok) {
+                    throw new Error("Server rejected interview");
+                }
+
+                showToast("Interview event scheduled!");
+                closeModals();
+                setTimeout(() => window.location.reload(), 600);
+            } catch (err) {
+                showToast("Error scheduling interview: " + err.message, true);
+            }
+        }
+    </script>
+</body>
+</html>
